@@ -341,6 +341,13 @@ def mngrAllUsers():
     users=User.query.all()
     return render_template("mngrAllUsers.html", user=current_user, users=users)
 
+@auth.route('/mngrAllEmployees')
+@login_required
+def mngrAllEmployees():
+    users=Employee.query.all()
+    return render_template("mngrAllEmployees.html", user=current_user, users=users)
+
+
 @auth.route('/mngrAllTrans')
 @login_required
 def mngrAllTrans():
@@ -385,3 +392,21 @@ def empEditProf():
             flash('Error in updating', category='error')
             return redirect(url_for('auth.empEditProf'))
     return render_template('empEditProf.html', user=current_user)
+
+@auth.route('/mngrEditProf', methods=['GET','POST'])
+def mngrEditProf():
+    user = current_user
+    
+    if request.method == 'POST':
+        user.first_name = request.form['fname']
+        user.last_name = request.form['lname']
+        user.phone = request.form['phone']
+        user.email = request.form['email']
+        try:
+            db.session.commit()
+            flash('Updated', category='success')
+            return redirect(url_for('auth.mngrprofile'))
+        except:
+            flash('Error in updating', category='error')
+            return redirect(url_for('auth.mngrEditProf'))
+    return render_template('mngrEditProf.html', user=current_user)
