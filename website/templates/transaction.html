@@ -1,0 +1,39 @@
+{% extends "base.html" %} 
+{% block title %}
+    Transaction
+{% endblock %} 
+{% block content %}
+<form method="POST">
+    <h1 align="center">Transactions</h1>
+    <div class="form-group">
+        <span>
+            <input type="radio" id="deposit" name="choice" value="deposit">
+            <label for="deposit">Deposit</label><br>
+            
+            <input type="radio" id="withdraw" name="choice" value="withdraw">
+            <label for="withdraw">Withdraw</label><br>
+        </span>
+    </div>
+    <div class="form-group">
+        <span>
+            <input type="radio" id="current" name="account" value="current">
+            <label for="deposit">Current</label><br>
+            
+            <input type="radio" id="saving" name="account" value="saving">
+            <label for="withdraw">Saving</label><br>
+        </span>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" />
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount</label>
+        <input type="text" class="form-control" id="amount" name="amount" placeholder="Enter tranferring amount" />
+    </div>
+    
+    <br />
+    <button type="submit" class="btn btn-primary">Transfer</button>
+    
+</form>
+{% endblock %}

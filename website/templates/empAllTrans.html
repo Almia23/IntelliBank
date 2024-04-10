@@ -1,0 +1,27 @@
+{% extends "empbase.html" %} 
+{% block title %}
+    All Transactions
+{% endblock %} 
+{% block content %}
+<h1 align="center">All Transactions</h1>
+<br />
+    <table class="table" align="center">
+        <tr>
+            <th>Sl no.</th>
+            <th>From</th>
+            <th>To</th> 
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+        {% for transact in transacts %}
+            <tr>
+                <td></td>
+                <td>{{ transact.from_ac }}</td>
+                <td>{{ transact.to_ac }}</td>
+                <td>{{ transact.amount }}</td>
+                <td>{{ transact.date }}</td>
+            </tr>
+        {% endfor %}
+      </table>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %} 
+{% block title %}
+    Transfer
+{% endblock %} 
+{% block content %}
+<form method="POST">
+    <h1 align="center">Transfers</h1>
+    <div class="form-group">
+        <label for="firstName">Receiver First Name</label>
+        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter Receiver first name" />
+    </div>
+    <div class="form-group">
+        <label for="email">Receiver Email Address</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="Enter Receiver email" />
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" />
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount</label>
+        <input type="text" class="form-control" id="amount" name="amount" placeholder="Enter tranferring amount" />
+    </div>
+    <div class="form-group">
+        <span>
+            <input type="radio" id="current" name="account" value="current">
+            <label for="deposit">Current</label><br>
+            
+            <input type="radio" id="saving" name="account" value="saving">
+            <label for="withdraw">Saving</label><br>
+        </span>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Transfer</button>
+    
+</form>
+{% endblock %}
