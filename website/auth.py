@@ -145,7 +145,7 @@ def empsign_up():
             new_user = Employee(first_name=first_name, last_name=last_name, phone=phone, email=email, password=generate_password_hash(password1, method='pbkdf2:sha256'))
             db.session.add(new_user)
             db.session.commit()
-            flash('User added', category='success')
+            flash('Employee added', category='success')
     return render_template("empsignup.html", user=current_user)
 
 
@@ -182,11 +182,13 @@ def transaction():
         elif option=='withdraw':
             if account.balance<amount:
                 flash('Not enough balance', category='error')
+            elif amount>1000 and acc=='saving':
+                flash('Only upto 1000 can be withdrawn from savings account', category='error')
             else:
                 try:
                     account.balance=account.balance-amount
                     db.session.commit()
-                    new_transaction = Transactions(from_ac=account.acnum, to_ac=account.acnum, amount=-amount)
+                    new_transaction = Transactions(from_ac=account.acnum,from_type=acc, to_ac=account.acnum,to_type=acc, amount=-amount)
                     db.session.add(new_transaction)
                     db.session.commit()
                     flash('Amount withdrawn', category='success')
@@ -198,7 +200,7 @@ def transaction():
             try:
                 account.balance=account.balance+amount
                 db.session.commit()
-                new_transaction = Transactions(from_ac=account.acnum, to_ac=account.acnum, amount=amount)
+                new_transaction = Transactions(from_ac=account.acnum,from_type=acc, to_ac=account.acnum,to_type=acc, amount=amount)
                 db.session.add(new_transaction)
                 db.session.commit()
                 flash('Amount deposited', category='success')
@@ -235,12 +237,14 @@ def transfer():
             flash('Account doesnt exist', category='error')
         elif account.balance<amount:
             flash('Not enough balance', category='error')
+        elif amount>1000 and acc=='saving':
+            flash('Only upto 1000 can be transferred from savings account', category='error')
         else:
             try:
                 account.balance=account.balance-amount
                 receiveracc.balance=receiveracc.balance+amount
                 db.session.commit()
-                new_transaction = Transactions(from_ac=account.acnum, to_ac=receiveracc.acnum, amount=-amount)
+                new_transaction = Transactions(from_ac=account.acnum,from_type=acc, to_ac=receiveracc.acnum,to_type="current", amount=-amount)
                 db.session.add(new_transaction)
                 db.session.commit()
                 flash('Amount transfered', category='success')
@@ -319,15 +323,18 @@ def empAllUsers():
 @auth.route('/empAllTrans')
 @login_required
 def empAllTrans():
-    user=current_user
-    useracc=User.query.filter_by(managedBy=user.id)
-    transacts=Transactions.query.filter_by(from_ac=current.acnum).union(Transactions.query.filter_by(to_ac=current.acnum))
+    #db.session.query(db.func.sum(Services.price)).filter(Services.dateAdd.between(start, end))
+    #this for interest
+    #select * from transactions where from_ac in(select acnum from currents where userid in(select id from user where managedBy=current_user.id))
+    results = db.session.query(User.id).filter_by(managedBy=current_user.id).all()
+    results2 = [list(row) for row in results]
+    newl = [i for i2 in results2 for i in i2]
+
+    subquery2 = db.session.query(Currents.acnum).filter(Currents.userid.in_(newl)).all()
+    resultsq2 = [list(row) for row in subquery2]
+    newl2 = [i for i2 in resultsq2 for i in i2]
     
-    current=Currents.query.filter_by(userid=user.id)
-    saving=Currents.query.filter_by(userid=user.id).first()
-    transacts=Transactions.query.filter_by(from_ac=current.acnum).union(Transactions.query.filter_by(to_ac=current.acnum))
-    
-    
+    transacts=db.session.query(Transactions).filter(Transactions.from_ac.in_(newl2))
     return render_template("empAllTrans.html", user=current_user, transacts=transacts)
     
 @auth.route('/mngrprofile')

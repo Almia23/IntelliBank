@@ -9,7 +9,9 @@
         <tr>
             <th>Sl no.</th>
             <th>From</th>
+            <th>FromType</th>
             <th>To</th> 
+            <th>ToType</th>
             <th>Amount</th>
             <th>Date</th>
         </tr>
@@ -17,7 +19,9 @@
             <tr>
                 <td></td>
                 <td>{{ transact.from_ac }}</td>
+                <td>{{ transact.from_type }}</td>
                 <td>{{ transact.to_ac }}</td>
+                <td>{{ transact.to_type }}</td>
                 <td>{{ transact.amount }}</td>
                 <td>{{ transact.date }}</td>
             </tr>
