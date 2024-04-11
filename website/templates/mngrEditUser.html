@@ -1,0 +1,35 @@
+{% extends "mngrbase.html" %} 
+{% block title %}
+    Manager Edit User
+{% endblock %} 
+{% block content %}
+<h1 align="center">User Profile Edit</h1>
+<div class="content">
+    <div class="form">  
+        <form action="/mngrEditUser/{{cust.id}}" method="POST" align="center">
+            <div class="form-group">
+                <label for="fname"><h6>First Name:</h6></label>
+                <input type="text" name="fname" id="fname" value="{{ cust.first_name }}">
+            </div>
+            <div class="form-group">
+                <label for="lname"><h6>Last Name:</h6></label>
+                <input type="text" name="lname" id="lname" value="{{ cust.last_name }}">
+            </div>
+            <div class="form-group">
+                <label for="phone"><h6>Phone:</h6></label>
+                <input type="text" name="phone" id="phone" value="{{ cust.phone }}">
+            </div>
+            <div class="form-group">
+                <label for="email"><h6>Email:</h6></label>
+                <input type="email" name="email" id="email" value="{{ cust.email }}"> <br />
+            </div>
+            <div class="form-group">
+                <label for="password"><h6>Enter your password to update:</h6></label>
+                <input type="password" name="password" id="password" placeholder="Enter password"> <br />
+            </div>
+            <br />
+            <input type="submit" value="Update">
+        </form>
+    </div>
+</div>
+{% endblock %}

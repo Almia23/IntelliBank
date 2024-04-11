@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, flash, url_for, request
 from .models import User, Employee, Savings, Currents, Transactions
 from . import db
-from sqlalchemy.sql import func
+from datetime import datetime
+from sqlalchemy.sql import func, text, extract
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 import random
@@ -152,12 +153,26 @@ def empsign_up():
 
 ############################
 
+
 @auth.route('/profile')
 @login_required
 def profile():
     user = current_user
     current=Currents.query.filter_by(userid=user.id).first()
     saving=Savings.query.filter_by(userid=user.id).first()
+    date=datetime(datetime.today().year, datetime.today().month, datetime.today().day)
+    if saving:
+        days = date.day-saving.lastupdated.day
+        if days>=1:
+            if saving.accountType==1:
+                rate=0.01
+            elif saving.accountType==2:
+                rate=0.025
+            elif saving.accountType==3:
+                rate=0.04
+            for i in range (0,days):
+                saving.balance += saving.balance*rate
+            db.session.commit()
     return render_template("profile.html", user=current_user, current=current, saving=saving)
 
 @auth.route('/transaction', methods=['GET','POST'])
@@ -168,13 +183,24 @@ def transaction():
         acc = request.form.get('account')
         password = request.form.get('password')
         amount = int(request.form.get('amount'))
-
+        date=datetime(datetime.today().year, datetime.today().month, datetime.today().day)
         user = current_user
         if acc=='current':
             account=Currents.query.filter_by(userid=user.id).first()
         else:
             account=Savings.query.filter_by(userid=user.id).first()
-                
+            if account:
+                days = date.day-account.lastupdated.day
+                if days>=1:
+                    if account.accountType==1:
+                        rate=0.01
+                    elif account.accountType==2:
+                        rate=0.025
+                    elif account.accountType==3:
+                        rate=0.04
+                    for i in range (0,days):
+                        account.balance += account.balance*rate
+                db.session.commit()        
         if not check_password_hash(user.password,password):
             flash('Incorrect password', category='error')
         elif not account:
@@ -218,12 +244,25 @@ def transfer():
         password = request.form.get('password') #sender password
         amount = int(request.form.get('amount'))
         acc = request.form.get('account')
-
+        date=datetime(datetime.today().year, datetime.today().month, datetime.today().day)
         sender = current_user
         if acc=='current':
             account=Currents.query.filter_by(userid=sender.id).first()
         else:
             account=Savings.query.filter_by(userid=sender.id).first()
+            if account:
+                days = date.day-account.lastupdated.day
+                if days<1:
+                    if account.accountType==1:
+                        rate=0.01
+                    elif account.accountType==2:
+                        rate=0.025
+                    elif account.accountType==3:
+                        rate=0.04
+                    for i in range (0,days):
+                        account.balance += account.balance*rate
+                account.lastupdated=func.now()
+                db.session.commit()
         receiver = User.query.filter_by(email=email).first()
         receiveracc = Currents.query.filter_by(userid=receiver.id).first()
         
@@ -294,7 +333,7 @@ def savings():
                 db.session.commit()
                 flash('Savings account created', category='success')
                 saving = Savings.query.filter_by(userid=user.id).first()
-                new_transaction = Transactions(from_ac=current.acnum, to_ac=saving.acnum, amount=-amount)
+                new_transaction = Transactions(from_ac=current.acnum, from_type='current', to_ac=saving.acnum,to_type='saving', amount=-amount)
                 db.session.add(new_transaction)
                 db.session.commit()
             except:
@@ -369,6 +408,11 @@ def editUser():
     user = current_user
     
     if request.method == 'POST':
+        
+        password=request.form['password']
+        if not (check_password_hash(user.password,password)):
+            flash('Incorrect password', category='error')
+            return redirect(url_for('auth.editUser'))
         user.first_name = request.form['fname']
         user.last_name = request.form['lname']
         user.phone = request.form['phone']
@@ -387,6 +431,10 @@ def empEditProf():
     user = current_user
     
     if request.method == 'POST':
+        password=request.form['password']
+        if not (check_password_hash(user.password,password)):
+            flash('Incorrect password', category='error')
+            return redirect(url_for('auth.empEditProf'))
         user.first_name = request.form['fname']
         user.last_name = request.form['lname']
         user.phone = request.form['phone']
@@ -405,6 +453,10 @@ def mngrEditProf():
     user = current_user
     
     if request.method == 'POST':
+        password=request.form['password']
+        if not (check_password_hash(user.password,password)):
+            flash('Incorrect password', category='error')
+            return redirect(url_for('auth.mngrEditProf'))
         user.first_name = request.form['fname']
         user.last_name = request.form['lname']
         user.phone = request.form['phone']
@@ -417,3 +469,111 @@ def mngrEditProf():
             flash('Error in updating', category='error')
             return redirect(url_for('auth.mngrEditProf'))
     return render_template('mngrEditProf.html', user=current_user)
+
+
+
+@auth.route('/empEditUser/<int:id>', methods=['GET','POST'])
+def empEditUser(id):
+    user=current_user
+    cust=User.query.get_or_404(id)
+    if request.method == 'POST':
+        password=request.form['password']
+        if not (check_password_hash(user.password,password)):
+            flash('Incorrect password', category='error')
+            return redirect(url_for('auth.empAllUsers'))
+        cust.first_name = request.form['fname']
+        cust.last_name = request.form['lname']
+        cust.phone = request.form['phone']
+        cust.email = request.form['email']
+        try:
+            db.session.commit()
+            flash('User updated', category='success')
+            return redirect(url_for('auth.empAllUsers'))
+        except:
+            flash('Error in updating', category='error')
+            return redirect(url_for('auth.empAllUsers'))
+    else:
+        return render_template('empEditUser.html', user=user, cust=cust)
+    
+@auth.route('/empDeleteUser/<int:id>')
+def empDeleteUser(id):
+    cust= User.query.get_or_404(id)
+    try:
+        db.session.delete(cust)
+        db.session.commit()
+        flash('User deleted', category='success')
+        return redirect(url_for('auth.empAllUsers'))
+    except:
+        flash('Error in deleting', category='error')
+        return redirect(url_for('auth.empAllUsers'))
+    
+@auth.route('/mngrEditUser/<int:id>', methods=['GET','POST'])
+def mngrEditUser(id):
+    user=current_user
+    cust=User.query.get_or_404(id)
+    if request.method == 'POST':
+        password=request.form['password']
+        if not (check_password_hash(user.password,password)):
+            flash('Incorrect password', category='error')
+            return redirect(url_for('auth.mngrAllUsers'))
+        cust.first_name = request.form['fname']
+        cust.last_name = request.form['lname']
+        cust.phone = request.form['phone']
+        cust.email = request.form['email']
+        try:
+            db.session.commit()
+            flash('User updated', category='success')
+            return redirect(url_for('auth.mngrAllUsers'))
+        except:
+            flash('Error in updating', category='error')
+            return redirect(url_for('auth.mngrAllUsers'))
+    else:
+        return render_template('mngrEditUser.html', user=user, cust=cust)
+    
+@auth.route('/mngrDeleteUser/<int:id>')
+def mngrDeleteUser(id):
+    cust= User.query.get_or_404(id)
+    try:
+        db.session.delete(cust)
+        db.session.commit()
+        flash('User deleted', category='success')
+        return redirect(url_for('auth.mngrAllUsers'))
+    except:
+        flash('Error in deleting', category='error')
+        return redirect(url_for('auth.mngrAllUsers'))
+    
+@auth.route('/mngrEditEmp/<int:id>', methods=['GET','POST'])
+def mngrEditEmp(id):
+    user=current_user
+    cust=Employee.query.get_or_404(id)
+    if request.method == 'POST':
+        password=request.form['password']
+        if not (check_password_hash(user.password,password)):
+            flash('Incorrect password', category='error')
+            return redirect(url_for('auth.mngrAllEmployees'))
+        cust.first_name = request.form['fname']
+        cust.last_name = request.form['lname']
+        cust.phone = request.form['phone']
+        cust.email = request.form['email']
+        cust.salary = request.form['salary']
+        try:
+            db.session.commit()
+            flash('Employee updated', category='success')
+            return redirect(url_for('auth.mngrAllEmployees'))
+        except:
+            flash('Error in updating', category='error')
+            return redirect(url_for('auth.mngrAllEmployees'))
+    else:
+        return render_template('mngrEditEmp.html', user=user, cust=cust)
+    
+@auth.route('/mngrDeleteEmp/<int:id>')
+def mngrDeleteEmp(id):
+    cust= Employee.query.get_or_404(id)
+    try:
+        db.session.delete(cust)
+        db.session.commit()
+        flash('Employee deleted', category='success')
+        return redirect(url_for('auth.mngrAllEmployees'))
+    except:
+        flash('Error in deleting', category='error')
+        return redirect(url_for('auth.mngrAllEmployees'))

@@ -13,6 +13,8 @@
             <th>LastName</th>
             <th>Phone</th>
             <th>Email</th>
+            <th />
+            <th>Actions</th>
         </tr>
         {% for user in users %}
             <tr>
@@ -22,6 +24,8 @@
                 <td>{{ user.last_name }}</td>
                 <td>{{ user.phone }}</td>
                 <td>{{ user.email }}</td>
+                <td><a href="/mngrEditUser/{{user.id}}">Edit</a></td>
+                <td><a href="/mngrDeleteUser/{{user.id}}">Delete</a></td>
             </tr>
         {% endfor %}
       </table>

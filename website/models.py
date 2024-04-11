@@ -20,21 +20,22 @@ class User(db.Model, UserMixin):
     phone = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(300), unique=True)
     password = db.Column(db.String(100))
-    managedBy = db.Column(db.Integer, ForeignKey("employee.id"))
+    managedBy = db.Column(db.Integer, ForeignKey("employee.id", ondelete="CASCADE"))
     date = db.Column(db.DateTime(timezone=True), default=func.now())
     
 class Currents(db.Model, UserMixin):
     acnum = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, ForeignKey("user.id"))
+    userid = db.Column(db.Integer, ForeignKey("user.id", ondelete="CASCADE"))
     balance = db.Column(db.Integer, default=0)
     date = db.Column(db.DateTime(timezone=True), default=func.now())
     
 class Savings(db.Model, UserMixin):
     acnum = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, ForeignKey("user.id"))
+    userid = db.Column(db.Integer, ForeignKey("user.id", ondelete="CASCADE"))
     balance = db.Column(db.Integer, default=0)
     accountType = db.Column(db.Integer, default=1)
     date = db.Column(db.DateTime(timezone=True), default=func.now())
+    lastupdated = db.Column(db.DateTime(timezone=True), default=func.now(), onupdate=func.now())
     
 class Transactions(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

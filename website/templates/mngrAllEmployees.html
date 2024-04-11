@@ -1,9 +1,9 @@
 {% extends "mngrbase.html" %} 
 {% block title %}
-    All Users
+    All Employees
 {% endblock %} 
 {% block content %}
-<h1 align="center">All Users</h1>
+<h1 align="center">All Employees</h1>
 <br />
     <table class="table" align="center">
         <tr>
@@ -24,6 +24,8 @@
                 <td>{{ user.phone }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.salary }}</td>
+                <td><a href="/mngrEditEmp/{{user.id}}">Edit</a></td>
+                <td><a href="/mngrDeleteEmp/{{user.id}}">Delete</a></td>
             </tr>
         {% endfor %}
       </table>
