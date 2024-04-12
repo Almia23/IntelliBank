@@ -122,6 +122,7 @@ def empsign_up():
         last_name = request.form.get('lastName')
         phone = request.form.get('phone')
         email = request.form.get('email')
+        salary = int(request.form.get('salary'))
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
         
@@ -143,9 +144,13 @@ def empsign_up():
         elif len(password1)<7:
             flash('Password must be greater than 7 characters', category='error')
         else:
-            new_user = Employee(first_name=first_name, last_name=last_name, phone=phone, email=email, password=generate_password_hash(password1, method='pbkdf2:sha256'))
+            new_user = Employee(first_name=first_name, last_name=last_name, phone=phone, email=email, salary=salary, password=generate_password_hash(password1, method='pbkdf2:sha256'))
             db.session.add(new_user)
             db.session.commit()
+            emp = Employee.query.filter_by(email=email).first()
+            if(emp.id==1):
+                emp.id=emp.id+100
+                db.session.commit()
             flash('Employee added', category='success')
     return render_template("empsignup.html", user=current_user)
 
@@ -520,6 +525,7 @@ def mngrEditUser(id):
         cust.last_name = request.form['lname']
         cust.phone = request.form['phone']
         cust.email = request.form['email']
+        cust.managedBy = int(request.form['managedBy'])
         try:
             db.session.commit()
             flash('User updated', category='success')
